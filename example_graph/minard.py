@@ -27,37 +27,41 @@ def graph_temp():
     axs[1].set_xlim([20, 40])
 
 
-def graph_troops():
+def build_lines(direction, division, color):
     troop_scaling = 6000
-    division = 1
-    endcapscl = .1
-    # Select only troop movements marked 'advancing'
-    advance = troops[troops['direction'] == 'A']
-    advance = advance[advance['division'] == division]
-    points = np.array([advance['lon'], advance['lat']+.5]).T.reshape(-1, 1, 2)
+    endcapscl = .2
+    # Need to lower retreating troops so as not to overlap advancing
+    yoffset = -.5 if direction == 'R' else 0
+
+    # Select only troop movements marked with the correct direction
+    _troops = troops[troops['direction'] == direction]
+    # Same for division
+    _troops = _troops[_troops['division'] == division]
+
+    points = np.array([_troops['lon'],
+                       _troops['lat'] + yoffset]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    # Ugly numpy code to make line segments overlap
+
     # Scale overlaping by width of line
-    end = endcapscl * 2 * advance.loc[:13, 'survivors']/troops['survivors'].max()
+    end = endcapscl * \
+          _troops.iloc[:len(_troops)-1, 2] / troops['survivors'].max()
+    # Ugly numpy code to make line segments overlap
     segments[:, 0, 0] -= (segments[:, 1, 0] - segments[:, 0, 0]) * end
     segments[:, 1, 0] += (segments[:, 1, 0] - segments[:, 0, 0]) * end
     segments[:, 0, 1] -= (segments[:, 1, 1] - segments[:, 0, 1]) * end
     segments[:, 1, 1] += (segments[:, 1, 1] - segments[:, 0, 1]) * end
-    lc = LineCollection(segments, linewidths=advance['survivors']/troop_scaling,
-                        color='#dddddd')
+
+    return LineCollection(segments,
+                          linewidths=_troops['survivors'] / troop_scaling,
+                          color=color)
+
+
+def graph_troops():
+    lc = build_lines('A', 1, '#cccccc')
     axs[0].add_collection(lc)
 
-    # Select only troop movements marked 'retreating'
-    retreat = troops[troops['direction'] == 'R']
-    retreat = retreat[retreat['division'] == division]
-    points = np.array([retreat['lon'], retreat['lat']]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    segments[:, 0, 0] -= (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
-    segments[:, 1, 0] += (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
-    segments[:, 0, 1] -= (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
-    segments[:, 1, 1] += (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
-    lc = LineCollection(segments, linewidths=retreat['survivors']/troop_scaling,
-                        color='#000000')
+    lc = build_lines('R', 1, '#000000')
+    axs[0].add_collection(lc)
 
     axs[0].set_xlim([20, 40])
     axs[0].set_ylim([50, 60])

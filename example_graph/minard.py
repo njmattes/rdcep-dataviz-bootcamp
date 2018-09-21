@@ -37,11 +37,12 @@ def graph_troops():
     points = np.array([advance['lon'], advance['lat']+.5]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     # Ugly numpy code to make line segments overlap
-    segments[:, 0, 0] -= (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
-    segments[:, 1, 0] += (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
-    segments[:, 0, 1] -= (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
-    segments[:, 1, 1] += (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
-    print(segments.shape)
+    # Scale overlaping by width of line
+    end = endcapscl * 2 * advance.loc[:13, 'survivors']/troops['survivors'].max()
+    segments[:, 0, 0] -= (segments[:, 1, 0] - segments[:, 0, 0]) * end
+    segments[:, 1, 0] += (segments[:, 1, 0] - segments[:, 0, 0]) * end
+    segments[:, 0, 1] -= (segments[:, 1, 1] - segments[:, 0, 1]) * end
+    segments[:, 1, 1] += (segments[:, 1, 1] - segments[:, 0, 1]) * end
     lc = LineCollection(segments, linewidths=advance['survivors']/troop_scaling,
                         color='#dddddd')
     axs[0].add_collection(lc)
@@ -51,6 +52,10 @@ def graph_troops():
     retreat = retreat[retreat['division'] == division]
     points = np.array([retreat['lon'], retreat['lat']]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    segments[:, 0, 0] -= (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
+    segments[:, 1, 0] += (segments[:, 1, 0] - segments[:, 0, 0]) * endcapscl
+    segments[:, 0, 1] -= (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
+    segments[:, 1, 1] += (segments[:, 1, 1] - segments[:, 0, 1]) * endcapscl
     lc = LineCollection(segments, linewidths=retreat['survivors']/troop_scaling,
                         color='#000000')
 

@@ -17,14 +17,19 @@ grid_dict = {'height_ratios': [4, 1],
 fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=False,
                         gridspec_kw=grid_dict, **fig_dict)
 for ax in axs:
-    ax.set_axis_off()
+    # ax.set_axis_off()
     fig.add_axes(ax)
     plt.setp(ax.spines.values(), color='black')
 
 
 def graph_temp():
-    axs[1].plot(temps['lon'], temps['temperature'])
+    axs[1].plot(temps['lon'], temps['temperature'], color='black', linewidth=.5)
+    axs[1].plot(temps['lon'], temps['temperature']-.5, color='#cccccc', linewidth=1)
     axs[1].set_xlim([20, 40])
+    axs[1].set_yticks([0, -10, -20, -30])
+    axs[1].set_xticks([])
+    axs[1].yaxis.grid(which='major', color='#cccccc', linestyle='-')
+    
 
 
 def build_lines(direction, division, color):

@@ -1,0 +1,11 @@
+scatterpoints=1
+markerscale=1.0
+fontsize=medium
+#
+borderpad=0.4
+labelspacing=0.5
+handlelength=2.0
+handleheight=0.7
+handletextpad=0.8
+borderaxespad=0.5
+columnspacing=2.0
